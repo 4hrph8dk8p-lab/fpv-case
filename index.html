@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -6,51 +6,133 @@
     <title>FPV Star Box</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        body { background-color: #1a1a1a; color: white; font-family: Arial, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
-        .roulette-container { width: 100%; height: 120px; background: #222; border-top: 2px solid #444; border-bottom: 2px solid #444; position: relative; overflow: hidden; display: flex; align-items: center; }
-        .pointer { position: absolute; left: 50%; top: 0; bottom: 0; width: 4px; background-color: gold; transform: translateX(-50%); z-index: 10; }
-        .roulette-strip { display: flex; gap: 10px; position: absolute; left: 0; transition: transform 4s cubic-bezier(0.1, 0.7, 0.1, 1); }
-        .item { width: 100px; height: 100px; background: #333; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 12px; text-align: center; flex-shrink: 0; }
-        .btn { margin-top: 30px; padding: 15px 30px; background: #2ea6ff; color: white; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; }
-        .btn:active { background: #1c7bc4; }
+        :root { 
+            --bg: #0f0f11; --card: #1c1c22; --accent: #2ea6ff; --gold: #ffd700; 
+            --blue: #00a8ff; --purple: #9c88ff; --orange: #e1b12c;
+        }
+        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; min-height: 100vh; }
+        .header { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .balance { background: var(--card); padding: 10px 20px; border-radius: 20px; font-weight: bold; color: var(--gold); border: 1px solid #333; }
+        .daily-btn { background: linear-gradient(135deg, #28a745, #20c997); color: white; border: none; padding: 10px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+        .daily-btn:disabled { background: #333; color: #777; cursor: not-allowed; }
+        .roulette-container { width: 100%; height: 160px; background: #000; border: 2px solid #2a2a35; border-radius: 15px; position: relative; overflow: hidden; display: flex; align-items: center; margin: 20px 0; box-shadow: inset 0 0 30px #000; }
+        .pointer { position: absolute; left: 50%; top: 0; bottom: 0; width: 4px; background-color: var(--gold); transform: translateX(-50%); z-index: 10; box-shadow: 0 0 15px var(--gold); }
+        .roulette-strip { display: flex; gap: 15px; position: absolute; left: 0; padding-left: 10px; transition: transform 4s cubic-bezier(0.1, 0.7, 0.1, 1); }
+        .item { width: 120px; height: 130px; background: linear-gradient(180deg, #25252d 0%, #15151a 100%); border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; border: 2px solid #333; font-size: 11px; text-align: center; padding: 10px; box-sizing: border-box; }
+        .item-img { width: 60px; height: 60px; object-fit: contain; margin-bottom: 8px; }
+        .item.common { border-color: #555; }
+        .item.rare { border-color: var(--blue); box-shadow: inset 0 0 15px rgba(0, 168, 255, 0.2); }
+        .item.epic { border-color: var(--purple); box-shadow: inset 0 0 15px rgba(156, 136, 255, 0.2); }
+        .item.legend { border-color: var(--orange); box-shadow: inset 0 0 20px rgba(225, 177, 44, 0.3); }
+        .actions { display: flex; gap: 10px; width: 100%; }
+        .btn { flex: 1; padding: 18px; background: linear-gradient(135deg, var(--accent), #0066cc); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(46, 166, 255, 0.3); }
+        .btn:active { transform: scale(0.98); }
+        .history { width: 100%; margin-top: 25px; background: var(--card); padding: 15px; border-radius: 15px; font-size: 14px; box-sizing: border-box; border: 1px solid #2a2a35;}
+        .history h3 { margin: 0 0 10px 0; font-size: 14px; color: #888; }
+        .history-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #2a2a35; padding-bottom: 8px; }
     </style>
 </head>
 <body>
-    <h2>FPV Star Box</h2>
+    <div class="header">
+        <div class="balance" id="balance">⭐ 500</div>
+        <button class="daily-btn" id="dailyBtn" onclick="claimDaily()">🎁 Бонус</button>
+    </div>
     <div class="roulette-container">
         <div class="pointer"></div>
         <div class="roulette-strip" id="strip"></div>
     </div>
-    <button class="btn" id="spinBtn" onclick="spin()">Крутить (50 ⭐)</button>
+    <div class="actions">
+        <button class="btn" onclick="spin()">Крутить (50 ⭐)</button>
+    </div>
+    <div class="history">
+        <h3>Последние дропы:</h3>
+        <div id="historyList"></div>
+    </div>
+    
     <script>
-        const tg = window.Telegram.WebApp;
-        tg.expand();
+        const tg = window.Telegram?.WebApp || { expand: () => {}, ready: () => {}, showAlert: (msg) => alert(msg), sendData: (data) => console.log(data) };
+        tg.expand(); tg.ready();
+        
+        const items = [
+            { name: "Пропеллеры", image: "https://cdn-icons-png.flaticon.com/512/2889/2889676.png", rarity: "Обычный", class: "common" },
+            { name: "Аналог камера", image: "https://cdn-icons-png.flaticon.com/512/685/685655.png", rarity: "Обычный", class: "common" },
+            { name: "Мотор 2207", image: "https://cdn-icons-png.flaticon.com/512/3659/3659899.png", rarity: "Редкий", class: "rare" },
+            { name: "Цифровой VTX", image: "https://cdn-icons-png.flaticon.com/512/932/932057.png", rarity: "Эпический", class: "epic" },
+            { name: "DJI Goggles", image: "https://cdn-icons-png.flaticon.com/512/2889/2889676.png", rarity: "Легендарный", class: "legend" },
+            { name: "Рама 5''", image: "https://cdn-icons-png.flaticon.com/512/3063/3063822.png", rarity: "Обычный", class: "common" }
+        ];
+
         const strip = document.getElementById('strip');
-        const items = ['Пропеллеры', 'Мотор 2207', 'Рама', 'Очки DJI', 'Антенна', 'Стек'];
-        for (let i = 0; i < 30; i++) {
-            const div = document.createElement('div');
-            div.className = 'item';
-            div.innerText = items[Math.floor(Math.random() * items.length)];
-            strip.appendChild(div);
-        }
+        const historyList = document.getElementById('historyList');
         let isSpinning = false;
+        let balance = 500;
+
+        function buildStrip() {
+            strip.innerHTML = '';
+            for (let i = 0; i < 40; i++) {
+                const randomItem = items[Math.floor(Math.random() * items.length)];
+                const div = document.createElement('div');
+                div.className = `item ${randomItem.class}`;
+                div.innerHTML = `<img src="${randomItem.image}" class="item-img" onerror="this.style.display='none'"><div>${randomItem.name}</div>`;
+                strip.appendChild(div);
+            }
+        }
+        buildStrip();
+
+        function addHistory(item) {
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            div.innerHTML = `<span>${item.name}</span> <span style="color: var(--${item.class === 'legend' ? 'orange' : item.class === 'epic' ? 'purple' : item.class === 'rare' ? 'blue' : 'white'})">${item.rarity}</span>`;
+            historyList.prepend(div);
+            if (historyList.children.length > 5) historyList.lastChild.remove();
+        }
+
+        function claimDaily() {
+            const lastClaim = localStorage.getItem('lastClaim');
+            const now = Date.now();
+            if (lastClaim && now - lastClaim < 24 * 60 * 60 * 1000) { tg.showAlert("Ты уже забирал бонус!"); return; }
+            balance += 100;
+            document.getElementById('balance').innerText = `⭐ ${balance}`;
+            localStorage.setItem('lastClaim', now);
+            document.getElementById('dailyBtn').disabled = true;
+            document.getElementById('dailyBtn').innerText = "Забрано";
+            tg.showAlert("🎁 Ты получил 100 звезд!");
+        }
+        
+        const lastClaim = localStorage.getItem('lastClaim');
+        if (lastClaim && Date.now() - lastClaim < 24 * 60 * 60 * 1000) {
+            document.getElementById('dailyBtn').disabled = true;
+            document.getElementById('dailyBtn').innerText = "Забрано";
+        }
+
         function spin() {
             if (isSpinning) return;
+            if (balance < 50) { tg.showAlert("Недостаточно звезд!"); return; }
             isSpinning = true;
-            const winningIndex = Math.floor(Math.random() * 20) + 5;
-            const itemWidth = 110;
+            balance -= 50;
+            document.getElementById('balance').innerText = `⭐ ${balance}`;
+
+            const winningIndex = Math.floor(Math.random() * 30) + 5;
+            const itemWidth = 135; 
             const containerCenter = window.innerWidth / 2;
-            const offset = (winningIndex * itemWidth) - containerCenter + 50;
+            const offset = (winningIndex * itemWidth) - containerCenter + 60;
+
             strip.style.transition = 'transform 4s cubic-bezier(0.1, 0.7, 0.1, 1)';
-            strip.style.transform = 	ranslateX(-px);
+            strip.style.transform = `translateX(-${offset}px)`;
+
             setTimeout(() => {
                 isSpinning = false;
-                tg.sendData(JSON.stringify({ action: "spin_result", win_index: winningIndex }));
-                tg.showAlert("Вы выиграли предмет! (Логика оплаты в разработке)");
+                const wonItem = items[Math.floor(Math.random() * items.length)];
+                
+                tg.sendData(JSON.stringify({ action: "spin_result", item: wonItem.name, rarity: wonItem.rarity }));
+                tg.showAlert(`🎉 Ты выиграл: ${wonItem.name}`);
+                addHistory(wonItem);
+                
                 setTimeout(() => {
                     strip.style.transition = 'none';
                     strip.style.transform = 'translateX(0px)';
-                }, 1000);
+                    buildStrip();
+                }, 500);
             }, 4000);
         }
     </script>
