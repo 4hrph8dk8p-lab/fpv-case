@@ -19,7 +19,7 @@
         .pointer { position: absolute; left: 50%; top: 0; bottom: 0; width: 4px; background-color: var(--gold); transform: translateX(-50%); z-index: 10; box-shadow: 0 0 15px var(--gold); }
         .roulette-strip { display: flex; gap: 15px; position: absolute; left: 0; padding-left: 10px; transition: transform 4s cubic-bezier(0.1, 0.7, 0.1, 1); }
         .item { width: 120px; height: 130px; background: linear-gradient(180deg, #25252d 0%, #15151a 100%); border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; border: 2px solid #333; font-size: 11px; text-align: center; padding: 10px; box-sizing: border-box; }
-        .item-img { width: 60px; height: 60px; object-fit: contain; margin-bottom: 8px; }
+        .item-img { width: 75px; height: 75px; object-fit: contain; margin-bottom: 8px; }
         .item.common { border-color: #555; }
         .item.rare { border-color: var(--blue); box-shadow: inset 0 0 15px rgba(0, 168, 255, 0.2); }
         .item.epic { border-color: var(--purple); box-shadow: inset 0 0 15px rgba(156, 136, 255, 0.2); }
@@ -53,13 +53,14 @@
         const tg = window.Telegram?.WebApp || { expand: () => {}, ready: () => {}, showAlert: (msg) => alert(msg), sendData: (data) => console.log(data) };
         tg.expand(); tg.ready();
         
+        // НОВЫЕ КАРТИНКИ (Реальные запчасти)
         const items = [
-            { name: "Пропеллеры", image: "https://cdn-icons-png.flaticon.com/512/2889/2889676.png", rarity: "Обычный", class: "common" },
-            { name: "Аналог камера", image: "https://cdn-icons-png.flaticon.com/512/685/685655.png", rarity: "Обычный", class: "common" },
+            { name: "Пропеллеры", image: "https://cdn-icons-png.flaticon.com/512/3659/3659883.png", rarity: "Обычный", class: "common" },
+            { name: "Аналог камера", image: "https://cdn-icons-png.flaticon.com/512/3659/3659904.png", rarity: "Обычный", class: "common" },
             { name: "Мотор 2207", image: "https://cdn-icons-png.flaticon.com/512/3659/3659899.png", rarity: "Редкий", class: "rare" },
-            { name: "Цифровой VTX", image: "https://cdn-icons-png.flaticon.com/512/932/932057.png", rarity: "Эпический", class: "epic" },
-            { name: "DJI Goggles", image: "https://cdn-icons-png.flaticon.com/512/2889/2889676.png", rarity: "Легендарный", class: "legend" },
-            { name: "Рама 5''", image: "https://cdn-icons-png.flaticon.com/512/3063/3063822.png", rarity: "Обычный", class: "common" }
+            { name: "Цифровой VTX", image: "https://cdn-icons-png.flaticon.com/512/3659/3659902.png", rarity: "Эпический", class: "epic" },
+            { name: "DJI Goggles", image: "https://cdn-icons-png.flaticon.com/512/3659/3659911.png", rarity: "Легендарный", class: "legend" },
+            { name: "Рама 5''", image: "https://cdn-icons-png.flaticon.com/512/3659/3659910.png", rarity: "Обычный", class: "common" }
         ];
 
         const strip = document.getElementById('strip');
