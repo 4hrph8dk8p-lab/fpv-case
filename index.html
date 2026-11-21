@@ -6,58 +6,151 @@
     <title>FPV Star Box</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
-        :root { --bg: #0f0f11; --card: #1c1c22; --accent: #2ea6ff; --gold: #ffd700; --blue: #00a8ff; --purple: #9c88ff; --orange: #e1b12c; }
-        body { background: var(--bg); color: white; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; min-height: 100vh; }
-        .header { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .balance { background: var(--card); padding: 10px 20px; border-radius: 20px; font-weight: bold; color: var(--gold); border: 1px solid #333; }
-        .daily-btn { background: linear-gradient(135deg, #28a745, #20c997); color: white; border: none; padding: 10px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; }
-        .daily-btn:disabled { background: #333; color: #777; cursor: not-allowed; }
-        .roulette-container { width: 100%; height: 160px; background: #000; border: 2px solid #2a2a35; border-radius: 15px; position: relative; overflow: hidden; display: flex; align-items: center; margin: 20px 0; box-shadow: inset 0 0 30px #000; }
-        .pointer { position: absolute; left: 50%; top: 0; bottom: 0; width: 4px; background-color: var(--gold); transform: translateX(-50%); z-index: 10; box-shadow: 0 0 15px var(--gold); }
-        .roulette-strip { display: flex; gap: 15px; position: absolute; left: 0; padding-left: 10px; transition: transform 4s cubic-bezier(0.1, 0.7, 0.1, 1); }
-        .item { width: 120px; height: 130px; background: linear-gradient(180deg, #25252d 0%, #15151a 100%); border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; border: 2px solid #333; font-size: 11px; text-align: center; padding: 10px; box-sizing: border-box; }
-        .item-img { width: 75px; height: 75px; object-fit: contain; margin-bottom: 8px; }
-        .item.common { border-color: #555; }
-        .item.rare { border-color: var(--blue); box-shadow: inset 0 0 15px rgba(0, 168, 255, 0.2); }
-        .item.epic { border-color: var(--purple); box-shadow: inset 0 0 15px rgba(156, 136, 255, 0.2); }
-        .item.legend { border-color: var(--orange); box-shadow: inset 0 0 20px rgba(225, 177, 44, 0.3); }
-        .actions { display: flex; gap: 10px; width: 100%; }
-        .btn { flex: 1; padding: 18px; background: linear-gradient(135deg, var(--accent), #0066cc); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(46, 166, 255, 0.3); }
-        .btn:active { transform: scale(0.98); }
-        .history { width: 100%; margin-top: 25px; background: var(--card); padding: 15px; border-radius: 15px; font-size: 14px; box-sizing: border-box; border: 1px solid #2a2a35;}
-        .history h3 { margin: 0 0 10px 0; font-size: 14px; color: #888; }
-        .history-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #2a2a35; padding-bottom: 8px; }
+        @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;900&display=swap');
+        
+        :root { 
+            --bg: #09090b; 
+            --card: rgba(255, 255, 255, 0.05); 
+            --accent: #3b82f6; 
+            --gold: #fbbf24; 
+            --green: #10b981;
+            --blue: #3b82f6;
+            --purple: #8b5cf6;
+            --orange: #f59e0b;
+        }
+        
+        body { 
+            background: var(--bg);
+            background-image: radial-gradient(circle at 50% -20%, #1e1b4b 0%, #09090b 70%);
+            color: white; 
+            font-family: 'Montserrat', sans-serif; 
+            margin: 0; padding: 20px 15px; 
+            display: flex; flex-direction: column; align-items: center; 
+            min-height: 100vh; box-sizing: border-box;
+        }
+        
+        .header { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .balance-box { display: flex; flex-direction: column; }
+        .balance-label { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+        .balance-value { font-size: 24px; font-weight: 900; color: var(--gold); display: flex; align-items: center; gap: 5px; text-shadow: 0 0 15px rgba(251, 191, 36, 0.4); }
+        
+        .daily-btn { 
+            background: rgba(16, 185, 129, 0.1); color: var(--green); border: 1px solid var(--green); 
+            padding: 10px 15px; border-radius: 12px; font-weight: 700; font-size: 12px; 
+            cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); transition: 0.3s;
+        }
+        .daily-btn:disabled { background: #222; color: #555; border-color: #333; box-shadow: none; }
+
+        /* Рулетка */
+        .roulette-wrapper { width: 100%; position: relative; margin: 20px 0; }
+        .roulette-container { 
+            width: 100%; height: 140px; 
+            background: rgba(0,0,0,0.5); 
+            border: 1px solid rgba(255,255,255,0.1); 
+            border-radius: 20px; position: relative; overflow: hidden; 
+            display: flex; align-items: center; 
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+        }
+        
+        /* Затемнение по краям */
+        .roulette-container::before, .roulette-container::after {
+            content: ''; position: absolute; top: 0; bottom: 0; width: 60px; z-index: 5; pointer-events: none;
+        }
+        .roulette-container::before { left: 0; background: linear-gradient(to right, var(--bg), transparent); }
+        .roulette-container::after { right: 0; background: linear-gradient(to left, var(--bg), transparent); }
+
+        .pointer { 
+            position: absolute; left: 50%; top: -10px; bottom: -10px; width: 4px; 
+            background: white; transform: translateX(-50%); z-index: 10; 
+            box-shadow: 0 0 20px 5px rgba(255,255,255,0.8);
+        }
+        .pointer::after {
+            content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            border-left: 8px solid transparent; border-right: 8px solid transparent; border-top: 12px solid white;
+        }
+
+        .roulette-strip { display: flex; gap: 12px; position: absolute; left: 0; padding-left: 50%; transition: transform 5s cubic-bezier(0.15, 0.85, 0.15, 1); }
+        
+        .item { 
+            width: 100px; height: 110px; 
+            background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%); 
+            border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1); 
+            font-size: 10px; font-weight: 700; text-align: center; padding: 10px; box-sizing: border-box; 
+            position: relative; overflow: hidden;
+        }
+        
+        .item-icon { font-size: 35px; margin-bottom: 8px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.3)); }
+        
+        /* Редкости */
+        .item.common { border-bottom: 3px solid #555; }
+        .item.rare { border-bottom: 3px solid var(--blue); background: linear-gradient(180deg, rgba(59, 130, 246, 0.15) 0%, rgba(255,255,255,0.02) 100%); box-shadow: 0 0 15px rgba(59, 130, 246, 0.2); }
+        .item.epic { border-bottom: 3px solid var(--purple); background: linear-gradient(180deg, rgba(139, 92, 246, 0.15) 0%, rgba(255,255,255,0.02) 100%); box-shadow: 0 0 15px rgba(139, 92, 246, 0.2); }
+        .item.legend { border-bottom: 3px solid var(--orange); background: linear-gradient(180deg, rgba(245, 158, 11, 0.15) 0%, rgba(255,255,255,0.02) 100%); box-shadow: 0 0 20px rgba(245, 158, 11, 0.3); }
+
+        /* Кнопки */
+        .actions { display: flex; flex-direction: column; gap: 12px; width: 100%; margin-top: 10px; }
+        .btn { 
+            width: 100%; padding: 20px; 
+            background: linear-gradient(90deg, #2563eb, #3b82f6, #2563eb); 
+            background-size: 200% auto;
+            color: white; border: none; border-radius: 15px; font-size: 16px; font-weight: 900; 
+            cursor: pointer; text-transform: uppercase; letter-spacing: 1px;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.4); transition: 0.3s;
+            animation: gradientShift 3s infinite linear;
+        }
+        @keyframes gradientShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        .btn:active { transform: scale(0.97); }
+
+        /* История */
+        .history { width: 100%; margin-top: 25px; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 15px; font-size: 13px; border: 1px solid rgba(255,255,255,0.05); }
+        .history h3 { margin: 0 0 15px 0; font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+        .history-item { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px; }
+        .history-item:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        .hist-rarity { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="balance" id="balance">⭐ 500</div>
+        <div class="balance-box">
+            <div class="balance-label">Баланс</div>
+            <div class="balance-value"><span>⭐</span> <span id="balance">500</span></div>
+        </div>
         <button class="daily-btn" id="dailyBtn" onclick="claimDaily()">🎁 Бонус</button>
     </div>
-    <div class="roulette-container">
-        <div class="pointer"></div>
-        <div class="roulette-strip" id="strip"></div>
+
+    <div class="roulette-wrapper">
+        <div class="roulette-container">
+            <div class="pointer"></div>
+            <div class="roulette-strip" id="strip"></div>
+        </div>
     </div>
+
     <div class="actions">
-        <button class="btn" onclick="spin()">Крутить (50 ⭐)</button>
+        <button class="btn" onclick="spin()">Открыть кейс (50 ⭐)</button>
     </div>
+
     <div class="history">
-        <h3>Последние дропы:</h3>
-        <div id="historyList"></div>
+        <h3>Live лента дропов</h3>
+        <div id="historyList">
+            <!-- Сюда падают предметы -->
+        </div>
     </div>
     
     <script>
         const tg = window.Telegram?.WebApp || { expand: () => {}, ready: () => {}, showAlert: (msg) => alert(msg), sendData: (data) => console.log(data) };
         tg.expand(); tg.ready();
         
-        // НОВЫЕ КАРТИНКИ (Реальные FPV запчасти)
+        // Используем надежные эмодзи вместо битых картинок
         const items = [
-            { name: "Пропеллеры", image: "https://cdn-icons-png.flaticon.com/512/3659/3659883.png", rarity: "Обычный", class: "common" },
-            { name: "Аналог камера", image: "https://cdn-icons-png.flaticon.com/512/3659/3659904.png", rarity: "Обычный", class: "common" },
-            { name: "Мотор 2207", image: "https://cdn-icons-png.flaticon.com/512/3659/3659899.png", rarity: "Редкий", class: "rare" },
-            { name: "Цифровой VTX", image: "https://cdn-icons-png.flaticon.com/512/3659/3659902.png", rarity: "Эпический", class: "epic" },
-            { name: "DJI Goggles", image: "https://cdn-icons-png.flaticon.com/512/3659/3659911.png", rarity: "Легендарный", class: "legend" },
-            { name: "Рама 5''", image: "https://cdn-icons-png.flaticon.com/512/3659/3659910.png", rarity: "Обычный", class: "common" }
+            { name: "Пропеллеры", icon: "🌀", rarity: "Обычный", class: "common", color: "#888" },
+            { name: "Аналог камера", icon: "📷", rarity: "Обычный", class: "common", color: "#888" },
+            { name: "Мотор 2207", icon: "⚙️", rarity: "Редкий", class: "rare", color: "#3b82f6" },
+            { name: "Цифровой VTX", icon: "📡", rarity: "Эпический", class: "epic", color: "#8b5cf6" },
+            { name: "DJI Goggles", icon: "🥽", rarity: "Легендарный", class: "legend", color: "#f59e0b" },
+            { name: "Рама 5''", icon: "🛸", rarity: "Обычный", class: "common", color: "#888" }
         ];
 
         const strip = document.getElementById('strip');
@@ -67,11 +160,11 @@
 
         function buildStrip() {
             strip.innerHTML = '';
-            for (let i = 0; i < 40; i++) {
+            for (let i = 0; i < 50; i++) {
                 const randomItem = items[Math.floor(Math.random() * items.length)];
                 const div = document.createElement('div');
                 div.className = `item ${randomItem.class}`;
-                div.innerHTML = `<img src="${randomItem.image}" class="item-img" onerror="this.style.display='none'"><div>${randomItem.name}</div>`;
+                div.innerHTML = `<div class="item-icon">${randomItem.icon}</div><div>${randomItem.name}</div>`;
                 strip.appendChild(div);
             }
         }
@@ -80,9 +173,15 @@
         function addHistory(item) {
             const div = document.createElement('div');
             div.className = 'history-item';
-            div.innerHTML = `<span>${item.name}</span> <span style="color: var(--${item.class === 'legend' ? 'orange' : item.class === 'epic' ? 'purple' : item.class === 'rare' ? 'blue' : 'white'})">${item.rarity}</span>`;
+            div.innerHTML = `
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:20px;">${item.icon}</span>
+                    <span style="font-weight:700;">${item.name}</span>
+                </div> 
+                <span class="hist-rarity" style="color: ${item.color}">${item.rarity}</span>
+            `;
             historyList.prepend(div);
-            if (historyList.children.length > 5) historyList.lastChild.remove();
+            if (historyList.children.length > 4) historyList.lastChild.remove();
         }
 
         function claimDaily() {
@@ -90,7 +189,7 @@
             const now = Date.now();
             if (lastClaim && now - lastClaim < 24 * 60 * 60 * 1000) { tg.showAlert("Ты уже забирал бонус!"); return; }
             balance += 100;
-            document.getElementById('balance').innerText = `⭐ ${balance}`;
+            document.getElementById('balance').innerText = balance;
             localStorage.setItem('lastClaim', now);
             document.getElementById('dailyBtn').disabled = true;
             document.getElementById('dailyBtn').innerText = "Забрано";
@@ -108,14 +207,15 @@
             if (balance < 50) { tg.showAlert("Недостаточно звезд!"); return; }
             isSpinning = true;
             balance -= 50;
-            document.getElementById('balance').innerText = `⭐ ${balance}`;
+            document.getElementById('balance').innerText = balance;
 
-            const winningIndex = Math.floor(Math.random() * 30) + 5;
-            const itemWidth = 135; 
+            // Выбираем случайный индекс для остановки (от 20 до 40)
+            const winningIndex = Math.floor(Math.random() * 20) + 20;
+            const itemWidth = 112; // 100px ширина + 12px gap
             const containerCenter = window.innerWidth / 2;
-            const offset = (winningIndex * itemWidth) - containerCenter + 60;
+            const offset = (winningIndex * itemWidth) - containerCenter + 50; // 50 = половина ширины карточки
 
-            strip.style.transition = 'transform 4s cubic-bezier(0.1, 0.7, 0.1, 1)';
+            strip.style.transition = 'transform 5s cubic-bezier(0.15, 0.85, 0.15, 1)';
             strip.style.transform = `translateX(-${offset}px)`;
 
             setTimeout(() => {
@@ -126,12 +226,13 @@
                 tg.showAlert(`🎉 Ты выиграл: ${wonItem.name}`);
                 addHistory(wonItem);
                 
+                // Возвращаем рулетку в исходное состояние через 2 секунды
                 setTimeout(() => {
                     strip.style.transition = 'none';
                     strip.style.transform = 'translateX(0px)';
                     buildStrip();
-                }, 500);
-            }, 4000);
+                }, 2000);
+            }, 5000);
         }
     </script>
 </body>
